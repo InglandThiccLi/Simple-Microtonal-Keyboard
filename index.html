@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Microtonal Keyboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles/main.css" rel="stylesheet">
+    <link href="styles/effect.css" rel="stylesheet">
+    <link href="styles/waveform_modal.css" rel="stylesheet">
+    <link href="Favicon.ico" rel="icon" type="image/x-icon">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="row g-3">
+                <div class="col-md-2 col-6">
+                    <label class="form-label">Scale</label>
+                    <select id="scaleSelect" class="form-select">
+                        <option value="major">Major</option>
+                        <option value="minor">Minor</option>
+                        <option value="chromatic" selected>Chromatic</option>
+                        <option value="pentatonic-major">Pentatonic Major</option>
+                        <option value="pentatonic-minor">Pentatonic Minor</option>
+                        <option value="whole-tone">Whole Tone （6-tet）</option>
+                        <option value="15-tet">15-TET</option>
+                        <option value="19-tet">19-TET</option>
+                        <option value="24-tet">24-TET</option>
+                        <option value="31-tet">31-TET</option>
+                    </select>
+                </div>
+                <div class="col-md-2 col-6">
+                    <label class="form-label">Tonic</label>
+                    <select id="tonicSelect" class="form-select">
+                        <option value="C" selected>C</option>
+                        <option value="C#">C#</option>
+                        <option value="D">D</option>
+                        <option value="D#">D#</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#</option>
+                        <option value="G">G</option>
+                        <option value="G#">G#</option>
+                        <option value="A">A</option>
+                        <option value="A#">A#</option>
+                        <option value="B">B</option>
+                    </select>
+                </div>
+                <div class="col-md-2 col-6">
+                    <label class="form-label">Octave</label>
+                    <select id="octaveSelect" class="form-select">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+                <div class="col-md-2 col-6">
+                    <label class="form-label">Waveform</label>
+                    <div class="d-flex gap-2">
+                        <select id="waveformSelect" class="form-select">
+                            <option value="sine" selected>Sine</option>
+                            <option value="sawtooth">Sawtooth</option>
+                            <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
+                        </select>
+                        <button id="createWaveformBtn" class="btn btn-outline-primary flex-shrink-0">+</button>
+                        <button id="deleteWaveformBtn" class="btn btn-outline-danger flex-shrink-0" style="border-color: #dc3545; color: #dc3545;">🗑️</button>
+                    </div>
+                </div>
+                <div class="col-md-4 col-12">
+                    <label class="form-label">Volume</label>
+                    <div class="volume-container">
+                        <span class="volume-icon">🔊</span>
+                        <input type="range" id="volumeSlider" class="form-range" min="0" max="100" value="50">
+                        <span id="volumeValue">50%</span>
+                        <button id="effectsBtn" class="btn btn-outline-primary effects-btn" style="border-color: var(--primary-color); color: var(--primary-color);">🎛️</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keyboard -->
+        <div class="keyboard-container">
+            <div id="keyboard" class="h-100"></div>
+        </div>
+
+        <hr>
+
+        <!-- Links -->
+        <div class="row justify-content-center">
+            <div class="col-2 text-center">
+                <a href="https://github.com/InglandThiccLi" target="_blank"><img width="32px" height="32px" src="github-mark.svg" onerror="this.src='github-mark.png'"></a>
+            </div>
+            <div class="col-2 text-center">
+                <a href='https://ko-fi.com/V7V31LFVQZ' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+            </div>         
+        </div>
+
+        <!-- Modal -->
+		<div id="waveformModal" class="modal-overlay">
+			<div class="modal-content-wide">
+				<div class="modal-header">
+					<h5>Create Custom Waveform</h5>
+					<button id="closeModalBtn" class="btn-close">×</button>
+				</div>
+				<div class="modal-body-redesigned">
+					<!-- Top Row: Wave Graph -->
+					<div class="wave-graph-section">
+						<h6 class="graph-title">Waveform Preview</h6>
+						<canvas id="waveformCanvas" width="600" height="200"></canvas>
+					</div>
+					
+					<!-- Middle Row: Vertical Sliders -->
+					<div class="sliders-section">
+						<div class="sliders-container" id="slidersContainer">
+							<div class="sliders-scroll" id="slidersScroll">
+								<!-- Sliders will be generated here -->
+							</div>
+							<button id="addHarmonicBtn" class="add-harmonic-circle">+</button>
+						</div>
+					</div>
+					
+					<!-- Bottom Row: Controls -->
+					<div class="controls-section">
+						<input type="text" id="waveformName" class="form-control waveform-name-input" placeholder="Custom Waveform Name">
+						<div class="control-buttons">
+							<button id="playWaveformBtn" class="btn btn-primary control-btn">▶ Play</button>
+							<button id="saveWaveformBtn" class="btn btn-success control-btn">💾 Save & Use</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+        <div id="effectsModal" class="modal-overlay">
+            <div class="modal-content-effects">
+                <div class="modal-header">
+                    <h5>Audio Effects</h5>
+                    <button id="closeEffectsBtn" class="btn-close">×</button>
+                </div>
+                <div class="modal-body-effects">
+                    <!-- ADSR Effect -->
+                    <div class="effect-section">
+                        <h6 class="effect-title">ADSR Envelope</h6>
+                        <div class="knobs-container">
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="attackKnob" class="effect-knob" min="0" max="1" step="0.01" value="0.01">
+                                    <div class="knob-value" id="attackValue">0.01s</div>
+                                </div>
+                                <label class="knob-label">Attack</label>
+                            </div>
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="decayKnob" class="effect-knob" min="0" max="2" step="0.01" value="0.1">
+                                    <div class="knob-value" id="decayValue">0.10s</div>
+                                </div>
+                                <label class="knob-label">Decay</label>
+                            </div>
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="sustainKnob" class="effect-knob" min="0" max="1" step="0.01" value="0.8">
+                                    <div class="knob-value" id="sustainValue">0.80</div>
+                                </div>
+                                <label class="knob-label">Sustain</label>
+                            </div>
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="releaseKnob" class="effect-knob" min="0" max="3" step="0.01" value="0.3">
+                                    <div class="knob-value" id="releaseValue">0.30s</div>
+                                </div>
+                                <label class="knob-label">Release</label>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- FM Effect -->
+                    <div class="effect-section">
+                        <h6 class="effect-title">Frequency Modulation (FM)</h6>
+                        <div class="knobs-container">
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="coarseFMFreqKnob" class="effect-knob" min="0" max="2" step="0.1" value="1">
+                                    <div class="knob-value" id="coarseFMFreqValue">0.0x</div>
+                                </div>
+                                <label class="knob-label">FM Frequency (Coarse)</label>
+                            </div>
+							<div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="fineFMFreqKnob" class="effect-knob" min="0" max="0.1" step="0.001" value="0">
+                                    <div class="knob-value" id="fineFMFreqValue">0.0x</div>
+                                </div>
+                                <label class="knob-label">FM Frequency (Fine)</label>
+                            </div>
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="coarseFMDepthKnob" class="effect-knob" min="0" max="90" step="1" value="0">
+                                    <div class="knob-value" id="coarseFMDepthValue">0%</div>
+                                </div>
+                                <label class="knob-label">FM Depth (Coarse)</label>
+                            </div>
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="fineFMDepthKnob" class="effect-knob" min="0" max="10" step="0.1" value="0">
+                                    <div class="knob-value" id="fineFMDepthValue">0%</div>
+                                </div>
+                                <label class="knob-label">FM Depth (Fine)</label>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- AM Effect -->
+                    <div class="effect-section">
+                        <h6 class="effect-title">Amplitude Modulation (AM)</h6>
+                        <div class="knobs-container">
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="coarseAMFreqKnob" class="effect-knob" min="0" max="2" step="0.1" value="1">
+                                    <div class="knob-value" id="coarseAMFreqValue">0.0x</div>
+                                </div>
+                                <label class="knob-label">AM Frequency (Coarse)</label>
+                            </div>
+							<div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="fineAMFreqKnob" class="effect-knob" min="0" max="0.1" step="0.001" value="0">
+                                    <div class="knob-value" id="fineAMFreqValue">0.0x</div>
+                                </div>
+                                <label class="knob-label">AM Frequency (Fine)</label>
+                            </div>
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="coarseAMDepthKnob" class="effect-knob" min="0" max="90" step="1" value="0">
+                                    <div class="knob-value" id="coarseAMDepthValue">0%</div>
+                                </div>
+                                <label class="knob-label">AM Depth (Coarse)</label>
+                            </div>
+							
+                            <div class="knob-group">
+                                <div class="knob-container">
+                                    <input type="range" id="fineAMDepthKnob" class="effect-knob" min="0" max="10" step="0.1" value="0">
+                                    <div class="knob-value" id="fineAMDepthValue">0%</div>
+                                </div>
+                                <label class="knob-label">AM Depth (Fine)</label>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- Save Button -->
+                    <div class="save-section">
+                        <button id="saveEffectsBtn" class="btn btn-success save-effects-btn">💾 Save Effects</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="scripts/waveform_creator.js"></script>
+    <script src="scripts/effect.js"></script>
+	<script src="scripts/player.js"></script>
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // Initialize the player when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new MicrotonalPlayer();
+        });
+    </script>
+</body>
+</html>
