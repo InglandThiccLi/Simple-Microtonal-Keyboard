@@ -158,7 +158,6 @@ class MicrotonalPlayer {
 
 		// Global touch end - this is the key fix
 		document.addEventListener('touchend', (e) => {
-			e.preventDefault();
 			for (let touch of e.changedTouches) {
 				const touchId = `touch-${touch.identifier}`;
 				if (this.activeInputs.has(touchId)) {
