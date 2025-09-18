@@ -371,7 +371,6 @@ class MicrotonalPlayer {
 
 		// Touch events
 		button.addEventListener('touchstart', (e) => {
-			e.preventDefault();
 			for (let touch of e.changedTouches) {
 				const touchId = `touch-${touch.identifier}`;
 				this.activeInputs.set(touchId, true);
