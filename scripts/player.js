@@ -261,7 +261,6 @@ class MicrotonalPlayer {
 			const tonicIndex = this.noteNames.indexOf(this.currentTonic);
 			const semitoneStep = (scale.steps[noteIndex] * 31) / scale.divisions;
 			const noteNameIndex = Math.round((tonicIndex + semitoneStep) % 31) % 31;
-			console.log(noteNameIndex);
 			return this.noteNames[noteNameIndex];
 		} else {
 			const tonicIndex = this.noteNames12.indexOf(this.currentTonic);
@@ -377,6 +376,19 @@ class MicrotonalPlayer {
 			}
 		});
 
+		var supportsPassive = false;
+		try {
+		var opts = Object.defineProperty({}, 'passive', {
+			get: function() {
+			supportsPassive = true;
+			}
+		});
+		window.addEventListener("testPassive", null, opts);
+		window.removeEventListener("testPassive", null, opts);
+		} catch (e) {}
+
+		// Use our detect's results. passive applied if supported, capture will be false either way.
+
 		// Touch events
 		button.addEventListener('touchstart', (e) => {
 			const touchedElement = e.target;
@@ -386,6 +398,6 @@ class MicrotonalPlayer {
 				this.activeInputs.set(touchId, true);
 				startNote(touchId);
 			}
-		});
+		}, supportsPassive ? { passive: true } : false);
 	}
 }
