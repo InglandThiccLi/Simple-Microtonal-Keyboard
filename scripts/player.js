@@ -39,6 +39,15 @@ class MicrotonalPlayer {
 		this.currentWaveform = (waveform == null) ? 'sine' : waveform;
 
 		this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+		const startOverlay = document.getElementById('startOverlay');
+		startOverlay.addEventListener("click", () => {
+            if (this.audioContext.state === "suspended") {
+                this.audioContext.resume();
+				startOverlay.classList.remove('d-block');
+				startOverlay.classList.add('d-none');
+            }
+	    });
+
 		this.gainNode = this.audioContext.createGain();
 		this.gainNode.connect(this.audioContext.destination);
 		this.gainNode.gain.value = this.volume;
@@ -86,7 +95,6 @@ class MicrotonalPlayer {
 	setupTouchEvents() {
 		// Global touch move handling
 		document.addEventListener('touchmove', (e) => {
-			e.preventDefault();
 			for (let touch of e.touches) {
 				const touchId = `touch-${touch.identifier}`;
 				if (this.activeInputs.has(touchId)) {
@@ -209,7 +217,7 @@ class MicrotonalPlayer {
 		const scale = this.scaleDefinitions[this.currentScale];
 		const notesPerRow = scale.steps.length;
 
-		for (let octave = 0; octave < 6; octave++) {
+		for (let octave = 0; octave < 6 + Math.min(0, 4 - this.currentOctave); octave++) {
 			const row = document.createElement('div');
 			row.className = 'octave-row';
 
@@ -371,12 +379,13 @@ class MicrotonalPlayer {
 
 		// Touch events
 		button.addEventListener('touchstart', (e) => {
+			const touchedElement = e.target;
+        	if (touchedElement && e.cancelable) e.preventDefault();
 			for (let touch of e.changedTouches) {
 				const touchId = `touch-${touch.identifier}`;
 				this.activeInputs.set(touchId, true);
 				startNote(touchId);
 			}
 		});
-		
 	}
 }
